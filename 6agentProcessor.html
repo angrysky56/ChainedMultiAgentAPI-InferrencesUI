@@ -6,50 +6,62 @@
     <title>Sequential Multi-Agent Chat</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
         }
-        
+
         #chat-container {
-            width: 100%;
-            max-width: 800px; /* Adjust the maximum width as needed */
-            height: 500px; /* Increased height */
-            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 800px;
+            height: 500px;
             overflow-y: auto;
-            margin: 20px auto;
-            padding: 10px;
-            background-color: #f9f9f9;
         }
-        
+
         #input-container {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        input[type="text"], button {
             width: 100%;
-            max-width: 800px; /* Adjust the maximum width as needed */
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
         }
-        
-        #input-container input[type="text"],
-        #input-container button {
-            width: 90%;
-            padding: 10px; /* Increased padding for better visibility */
-            margin: 5px 0; /* Added spacing between inputs */
-            font-size: 16px; /* Larger font size for better readability */
+
+        button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
         }
-        
+
+        button:hover {
+            background: #0056b3;
+        }
+
         .agent-input {
-            width: 90%; /* Match the width with other inputs */
-            margin-bottom: 10px; /* Space out the agent inputs */
+            margin-bottom: 10px;
         }
-        
-        /* Responsive adjustments for smaller screens */
+
         @media (max-width: 600px) {
-            #input-container input[type="text"],
-            #input-container button {
-                width: 100%;
+            #chat-container, #input-container {
+                width: 95%;
+                margin: 20px auto;
             }
         }
-        
     </style>
 </head>
 <body>
@@ -57,88 +69,82 @@
     <div id="input-container">
         <input type="text" id="user-input" placeholder="Type your message here" class="agent-input" />
         <input type="text" id="task-flow" placeholder="Enter task flow e.g. 1,2,3,4,5,6" class="agent-input" />
-        <!-- Agent instruction inputs -->
         <div id="agents-container">
-            <!-- Dynamically create agent inputs here -->
+            <!-- Dynamically created agent inputs will be here -->
         </div>
         <button onclick="startConversation()">Send</button>
     </div>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
-        const agentsContainer = document.getElementById('agents-container');
-
-        // Dynamically create agent input fields
-        for (let i = 1; i <= 6; i++) {
-            let agentInput = document.createElement('input');
-            agentInput.type = 'text';
-            agentInput.id = 'system-instruction-' + i;
-            agentInput.placeholder = 'System instruction for Agent ' + i;
-            agentInput.className = 'agent-input';
-            agentsContainer.appendChild(agentInput);
+const agentsContainer = document.getElementById('agents-container');
+// Dynamically create agent input fields
+for (let i = 1; i <= 6; i++) {
+    let agentInput = document.createElement('input');
+    agentInput.type = 'text';
+    agentInput.id = 'system-instruction-' + i;
+    agentInput.placeholder = 'System instruction for Agent ' + i;
+    agentInput.className = 'agent-input';
+    agentsContainer.appendChild(agentInput);
+}
+function startConversation() {
+    const userMessage = document.getElementById('user-input').value;
+    const taskFlow = document.getElementById('task-flow').value.split(',').map(Number);
+    document.getElementById('user-input').value = '';
+    addToChat(`You: ${userMessage}`);
+    let promiseChain = Promise.resolve(userMessage);
+    // Sequentially chain each agent's response
+    taskFlow.forEach(agentId => {
+        if (agentId >= 1 && agentId <= 6) {
+            const instructionInput = document.getElementById('system-instruction-' + agentId);
+            if (instructionInput && instructionInput.value.trim() !== NULL) {
+                promiseChain = promiseChain.then(previousMessage => {
+                    return sendMessage(previousMessage, instructionInput.value).then(response => {
+                        addToChat(`Agent ${agentId}: ${response}`);
+                        return response;
+                    });
+                });
+            }
         }
-
-        function startConversation() {
-            const userMessage = document.getElementById('user-input').value;
-            const taskFlow = document.getElementById('task-flow').value.split(',').map(Number);
-            document.getElementById('user-input').value = '';
-
-            addToChat(`You: ${userMessage}`);
-            let promiseChain = Promise.resolve(userMessage);
-
-            // Sequentially chain each agent's response
-            taskFlow.forEach(agentId => {
-                if (agentId >= 1 && agentId <= 6) {
-                    const instructionInput = document.getElementById('system-instruction-' + agentId);
-                    if (instructionInput && instructionInput.value.trim() !== NULL) {
-                        promiseChain = promiseChain.then(previousMessage => {
-                            return sendMessage(previousMessage, instructionInput.value).then(response => {
-                                addToChat(`Agent ${agentId}: ${response}`);
-                                return response;
-                            });
-                        });
-                    }
-                }
-            });
-
-            promiseChain.catch(error => console.error('Error in conversation:', error));
-        }
+    });
+    promiseChain.catch(error => console.error('Error in conversation:', error));
+}
         
-        function sendMessage(content, instruction) {
-            const data = {
-                messages: [
-                    {"role": "system", "content": instruction},
-                    {"role": "user", "content": content}
-                ],
-                temperature: 1.31,
-                max_tokens: -1,
-                stream: false
-            };
-            return fetch('http://localhost:1234/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Assuming the response contains a field 'choices' with the reply
-                // The structure of this line may change based on the actual response structure
-                return data.choices[0].message.content; // Adjust this line based on the response
-            });
+function sendMessage(content, instruction) {
+    const data = {
+        messages: [
+            {"role": "system", "content": instruction},
+            {"role": "user", "content": content}
+        ],
+        temperature: 1.31,
+        max_tokens: -1,
+        stream: false
+    };
+    return fetch('http://localhost:1234/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        function addToChat(message) {
-            const messageElement = document.createElement('p');
-            messageElement.textContent = message;
-            chatContainer.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+        return response.json();
+    })
+    .then(data => {
+        // Assuming the response contains a field 'choices' with the reply
+        // The structure of this line may change based on the actual response structure
+        return data.choices[0].message.content; // Adjust this line based on the response
+    });
+}
+function addToChat(message) {
+    const messageElement = document.createElement('p');
+    messageElement.textContent = message;
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
     </script>
 </body>
