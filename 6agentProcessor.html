@@ -90,7 +90,7 @@
             taskFlow.forEach(agentId => {
                 if (agentId >= 1 && agentId <= 6) {
                     const instructionInput = document.getElementById('system-instruction-' + agentId);
-                    if (instructionInput && instructionInput.value.trim() !== '') {
+                    if (instructionInput && instructionInput.value.trim() !== NULL) {
                         promiseChain = promiseChain.then(previousMessage => {
                             return sendMessage(previousMessage, instructionInput.value).then(response => {
                                 addToChat(`Agent ${agentId}: ${response}`);
