@@ -1,6 +1,17 @@
 # ChainedMultiAgentAPI-InferrencesUI
-A simple concept UI script to interface with LM Studio (etc) API and allow chained multi agent system prompt workflows.
-You can easily specify the order, ie 1,2,3,2,1,4, instructions of agents and the system prompt in the UI.
+
+A simple concept UI script to interface with LM Studio https://lmstudio.ai/ (etc) API and allow chained multi agent system prompt workflows completely for FREE!
+
+You can easily write your prompt, the order, ie 1,2,3,2,1,4, and instructions of agents in the UI.
+
+Easiest way to talk to AI:
+1. Install LM Studio, 
+2. Launch LM Studio, 
+3. Grab a model you like-
+4. Open my script in VS Code, save it, click run.
+![Screenshot 2024-01-02 222239](https://github.com/angrysky56/ChainedMultiAgentAPI-InferrencesUI/assets/113643118/ece45f3e-386c-451c-95e8-06fc93020afa)
+
+
 
 EXAMPLE 1:
 
