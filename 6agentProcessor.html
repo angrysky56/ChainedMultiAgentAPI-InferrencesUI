@@ -87,17 +87,19 @@ for (let i = 1; i <= 6; i++) {
     agentInput.className = 'agent-input';
     agentsContainer.appendChild(agentInput);
 }
+
 function startConversation() {
     const userMessage = document.getElementById('user-input').value;
     const taskFlow = document.getElementById('task-flow').value.split(',').map(Number);
     document.getElementById('user-input').value = '';
     addToChat(`You: ${userMessage}`);
     let promiseChain = Promise.resolve(userMessage);
-    // Sequentially chain each agent's response
+
     taskFlow.forEach(agentId => {
         if (agentId >= 1 && agentId <= 6) {
             const instructionInput = document.getElementById('system-instruction-' + agentId);
-            if (instructionInput && instructionInput.value.trim() !== NULL) {
+            // Check if the input field is not empty, null, or undefined
+            if (instructionInput && instructionInput.value.trim() !== '') {
                 promiseChain = promiseChain.then(previousMessage => {
                     return sendMessage(previousMessage, instructionInput.value).then(response => {
                         addToChat(`Agent ${agentId}: ${response}`);
@@ -107,9 +109,11 @@ function startConversation() {
             }
         }
     });
+
     promiseChain.catch(error => console.error('Error in conversation:', error));
 }
-        
+
+
 function sendMessage(content, instruction) {
     const data = {
         messages: [
