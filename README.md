@@ -9,6 +9,9 @@ Easiest way to talk to AI:
 2. Launch LM Studio, 
 3. Grab a model you like-
 4. Open my script in VS Code, save it, click run.
+
+Requirements: You will need a PC that can run LM Studio, thats it.
+
 ![Screenshot 2024-01-02 222239](https://github.com/angrysky56/ChainedMultiAgentAPI-InferrencesUI/assets/113643118/ece45f3e-386c-451c-95e8-06fc93020afa)
 
 
